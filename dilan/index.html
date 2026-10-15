@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DILAN-AI: Detektif Interaktif Literasi & Numerasi PAUD B</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            orange: '#FF7E36',
+                            yellow: '#FFC837',
+                            green: '#2ECC71',
+                            blue: '#3498DB',
+                            purple: '#9B59B6',
+                            bg: '#F3F9EF',
+                            card: '#FFFFFF'
+                        }
+                    },
+                    fontFamily: {
+                        fredoka: ['Fredoka', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts: Fredoka & Nunito -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Canvas Confetti CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Custom Style for PAUD & Print Layout -->
+    <style>
+        body {
+            font-family: 'Fredoka', 'Nunito', sans-serif;
+            background-color: #E8F5E9;
+            background-image: radial-gradient(#A5D6A7 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* 3D Pixar Style Button Effects */
+        .btn-3d {
+            transition: all 0.15s ease-in-out;
+            box-shadow: 0 6px 0 var(--tw-shadow-color);
+        }
+        .btn-3d:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 var(--tw-shadow-color);
+        }
+
+        /* Smooth pulse animation */
+        .pulse-gentle {
+            animation: pulse-animation 2s infinite ease-in-out;
+        }
+        @keyframes pulse-animation {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+        }
+
+        /* Glassmorphism Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 4px solid #FFF;
+        }
+
+        /* Print Media Styling for Modul 5 Unplugged Worksheet */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+            .page-break {
+                page-break-after: always;
+            }
+        }
+        .print-only {
+            display: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between p-2 md:p-6 overflow-x-hidden">
+
+    <header class="no-print w-full max-w-5xl mx-auto flex justify-between items-center bg-white/80 p-3 md:p-4 rounded-2xl shadow-md border-2 border-emerald-200 mb-4">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 bg-gradient-to-tr from-amber-400 to-orange-500 rounded-full flex items-center justify-center text-white text-2xl shadow-inner border-2 border-white">
+                🕵️‍♂️
+            </div>
+            <div>
+                <h1 class="text-xl md:text-2xl font-bold text-amber-600 leading-none">DILAN-AI</h1>
+                <p class="text-xs md:text-sm font-semibold text-emerald-600">Detektif Literasi & Numerasi PAUD</p>
+            </div>
+        </div>
+
+        <!-- Real-time Score Display & Sound Toggle -->
+        <div class="flex items-center gap-3">
+            <div id="score-badge" class="bg-amber-100 border-2 border-amber-400 px-3 py-1 md:px-4 md:py-1.5 rounded-full flex items-center gap-2 text-amber-800 font-bold text-sm md:text-base">
+                <span>⭐ Skor:</span>
+                <span id="global-score" class="text-lg md:text-xl text-amber-600">0</span>
+            </div>
+            <button id="btn-sound-toggle" onclick="toggleMute()" class="p-2.5 bg-blue-100 hover:bg-blue-200 border-2 border-blue-400 rounded-xl text-blue-700 transition" title="Mute/Unmute Suara">
+                <i id="sound-icon" data-lucide="volume-2" class="w-6 h-6"></i>
+            </button>
+            <button onclick="goHome()" class="p-2.5 bg-emerald-100 hover:bg-emerald-200 border-2 border-emerald-400 rounded-xl text-emerald-700 transition" title="Kembali ke Menu Utama">
+                <i data-lucide="home" class="w-6 h-6"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="w-full max-w-5xl mx-auto flex-grow flex flex-col justify-center items-center relative z-10">
+        
+        <!-- ================= PAGE 0: SPLASH SCREEN / MENU UTAMA ================= -->
+        <section id="page-home" class="w-full flex flex-col items-center text-center space-y-6 py-4">
+            <!-- Avatar Pixar DILAN AI -->
+            <div class="relative">
+                <div class="w-36 h-36 md:w-48 md:h-48 bg-gradient-to-b from-amber-200 to-orange-300 rounded-full flex items-center justify-center shadow-xl border-4 border-white pulse-gentle overflow-hidden relative">
+                    <span class="text-7xl md:text-8xl select-none filter drop-shadow-md">🦊</span>
+                    <div class="absolute bottom-1 bg-amber-800/80 text-white text-xs px-3 py-0.5 rounded-full font-bold">DILAN AI</div>
+                </div>
+                <button onclick="playGreeting()" class="absolute -top-2 -right-2 bg-emerald-500 hover:bg-emerald-600 text-white p-3 rounded-full border-2 border-white shadow-lg btn-3d shadow-emerald-700" title="Dengarkan Pesan Kiko">
+                    <i data-lucide="volume-2" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <!-- Welcome Text -->
+            <div class="bg-white/90 p-4 md:p-6 rounded-3xl shadow-lg border-2 border-amber-300 max-w-lg">
+                <h2 class="text-2xl md:text-3xl font-extrabold text-amber-700 mb-2">Halo Sahabat Cilik! 👋</h2>
+                <p class="text-slate-600 text-base md:text-lg leading-relaxed">
+                    Bantu <b>DILAN AI</b> memecahkan rahasia <b>Hewan Berkaki Empat</b> lewat petualangan membaca, berhitung, koding, dan berdiskusi bersama AI!
+                </p>
+            </div>
+
+            <!-- Main Menu Buttons Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-3xl pt-2">
+                <!-- Modul 1: Literasi -->
+                <button onclick="startModule(1)" class="btn-3d shadow-emerald-700 bg-emerald-500 hover:bg-emerald-600 text-white p-5 rounded-3xl flex flex-col items-center justify-center gap-2 border-2 border-emerald-300">
+                    <span class="text-4xl">🔤</span>
+                    <span class="text-xl font-bold">Berburu Huruf</span>
+                    <span class="text-xs bg-emerald-700/50 px-3 py-1 rounded-full">10 Soal Literasi</span>
+                </button>
+
+                <!-- Modul 2: Numerasi -->
+                <button onclick="startModule(2)" class="btn-3d shadow-amber-700 bg-amber-500 hover:bg-amber-600 text-white p-5 rounded-3xl flex flex-col items-center justify-center gap-2 border-2 border-amber-300">
+                    <span class="text-4xl">🔢</span>
+                    <span class="text-xl font-bold">Berhitung Ceria</span>
+                    <span class="text-xs bg-amber-700/50 px-3 py-1 rounded-full">10 Soal Numerasi</span>
+                </button>
+
+                <!-- Modul 3: Algoritma -->
+                <button onclick="startModule(3)" class="btn-3d shadow-blue-700 bg-blue-500 hover:bg-blue-600 text-white p-5 rounded-3xl flex flex-col items-center justify-center gap-2 border-2 border-blue-300">
+                    <span class="text-4xl">🧩</span>
+                    <span class="text-xl font-bold">Misi Algoritma</span>
+                    <span class="text-xs bg-blue-700/50 px-3 py-1 rounded-full">Koding Unplugged Grid</span>
+                </button>
+
+                <!-- Modul 4: Tanya DILAN AI -->
+                <button onclick="startModule(4)" class="btn-3d shadow-purple-700 bg-purple-500 hover:bg-purple-600 text-white p-5 rounded-3xl flex flex-col items-center justify-center gap-2 border-2 border-purple-300">
+                    <span class="text-4xl">🤖</span>
+                    <span class="text-xl font-bold">Tanya DILAN AI</span>
+                    <span class="text-xs bg-purple-700/50 px-3 py-1 rounded-full">Generative AI Assistant</span>
+                </button>
+
+                <!-- Modul 5: Cetak Worksheet -->
+                <button onclick="startModule(5)" class="btn-3d shadow-orange-700 bg-orange-500 hover:bg-orange-600 text-white p-5 rounded-3xl flex flex-col items-center justify-center gap-2 border-2 border-orange-300 sm:col-span-2 lg:col-span-1">
+                    <span class="text-4xl">🖨️</span>
+                    <span class="text-xl font-bold">Cetak Unplugged</span>
+                    <span class="text-xs bg-orange-700/50 px-3 py-1 rounded-full">LKS Fisik untuk Kelas</span>
+                </button>
+            </div>
+        </section>
+
+        <section id="page-module1" class="hidden w-full max-w-2xl glass-card p-5 md:p-8 rounded-3xl shadow-2xl flex flex-col items-center">
+            <!-- Module Header & Progress -->
+            <div class="w-full flex justify-between items-center mb-4 border-b-2 pb-3 border-emerald-100">
+                <span class="text-emerald-700 font-extrabold text-lg flex items-center gap-2">
+                    🔤 Modul 1: Berburu Huruf
+                </span>
+                <span id="m1-progress" class="bg-emerald-100 text-emerald-800 font-bold px-3 py-1 rounded-full text-sm">
+                    Soal 1 / 10
+                </span>
+            </div>
+
+            <!-- Card Quiz Item -->
+            <div class="w-full text-center my-2">
+                <div id="m1-emoji" class="text-8xl md:text-9xl my-4 animate-bounce filter drop-shadow-md">🐱</div>
+                <h3 id="m1-question-text" class="text-2xl md:text-3xl font-bold text-slate-700 mb-2">Pilih huruf awal untuk nama hewan ini!</h3>
+                <p id="m1-animal-name" class="text-lg text-emerald-600 font-bold tracking-widest mb-4">_ UCING</p>
+            </div>
+
+            <!-- Action Audio Button -->
+            <button onclick="speakCurrentQuestionM1()" class="mb-6 bg-blue-500 hover:bg-blue-600 text-white px-5 py-2.5 rounded-full font-bold shadow-md flex items-center gap-2 btn-3d shadow-blue-700">
+                <i data-lucide="volume-2" class="w-5 h-5"></i>
+                <span>🔊 Dengarkan Soal</span>
+            </button>
+
+            <!-- Choices Buttons -->
+            <div id="m1-choices" class="grid grid-cols-3 gap-4 w-full">
+                <!-- Dynamic Choices Loaded Here -->
+            </div>
+
+            <!-- Feedback Message -->
+            <div id="m1-feedback" class="mt-6 text-center h-8 font-bold text-xl"></div>
+        </section>
+
+        <section id="page-module2" class="hidden w-full max-w-2xl glass-card p-5 md:p-8 rounded-3xl shadow-2xl flex flex-col items-center">
+            <div class="w-full flex justify-between items-center mb-4 border-b-2 pb-3 border-amber-100">
+                <span class="text-amber-700 font-extrabold text-lg flex items-center gap-2">
+                    🔢 Modul 2: Berhitung Ceria
+                </span>
+                <span id="m2-progress" class="bg-amber-100 text-amber-800 font-bold px-3 py-1 rounded-full text-sm">
+                    Soal 1 / 10
+                </span>
+            </div>
+
+            <div class="w-full text-center my-2">
+                <h3 id="m2-question-text" class="text-2xl md:text-3xl font-bold text-slate-700 mb-4">Berapa jumlah hewan di bawah ini?</h3>
+                
+                <!-- Animals Display Grid -->
+                <div id="m2-animals-container" class="bg-amber-50/70 border-2 border-amber-200 rounded-2xl p-6 min-h-[160px] flex flex-wrap justify-center items-center gap-3 my-4">
+                    <!-- Dynamic Animals Emojis -->
+                </div>
+            </div>
+
+            <button onclick="speakCurrentQuestionM2()" class="mb-6 bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-full font-bold shadow-md flex items-center gap-2 btn-3d shadow-amber-700">
+                <i data-lucide="volume-2" class="w-5 h-5"></i>
+                <span>🔊 Dengarkan Soal</span>
+            </button>
+
+            <div id="m2-choices" class="grid grid-cols-3 gap-4 w-full">
+                <!-- Dynamic Choices -->
+            </div>
+
+            <div id="m2-feedback" class="mt-6 text-center h-8 font-bold text-xl"></div>
+        </section>
+
+        <section id="page-module3" class="hidden w-full max-w-3xl glass-card p-5 md:p-8 rounded-3xl shadow-2xl flex flex-col items-center">
+            <div class="w-full flex justify-between items-center mb-4 border-b-2 pb-3 border-blue-100">
+                <span class="text-blue-700 font-extrabold text-lg flex items-center gap-2">
+                    🧩 Modul 3: Misi Algoritma Detektif
+                </span>
+                <span class="bg-blue-100 text-blue-800 font-bold px-3 py-1 rounded-full text-sm">
+                    Koding Unplugged Digital
+                </span>
+            </div>
+
+            <p class="text-center text-slate-600 mb-4 text-base md:text-lg">
+                Bantu <b>DILAN AI 🦊</b> menyusun perintah arah panah untuk menemukan <b>Jejak Hewan 🐾</b>!
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full items-center">
+                <!-- 4x4 Grid Canvas / Layout -->
+                <div id="grid-container" class="grid grid-cols-4 gap-2 bg-blue-950 p-3 rounded-2xl border-4 border-blue-400 aspect-square max-w-[320px] mx-auto shadow-inner">
+                    <!-- 16 Cells Dynamic -->
+                </div>
+
+                <!-- Coding Commands Area -->
+                <div class="flex flex-col items-center space-y-4 bg-slate-50 p-4 rounded-2xl border-2 border-slate-200">
+                    <h4 class="font-bold text-slate-700 text-lg">Pilih Urutan Perintah:</h4>
+                    
+                    <!-- Command Direction Buttons -->
+                    <div class="grid grid-cols-2 gap-2 w-full">
+                        <button onclick="addCommand('➡️')" class="btn-3d shadow-blue-700 bg-blue-500 hover:bg-blue-600 text-white font-bold p-3 rounded-xl flex items-center justify-center gap-1">
+                            <span>➡️ Maju</span>
+                        </button>
+                        <button onclick="addCommand('⬆️')" class="btn-3d shadow-blue-700 bg-blue-500 hover:bg-blue-600 text-white font-bold p-3 rounded-xl flex items-center justify-center gap-1">
+                            <span>⬆️ Naik</span>
+                        </button>
+                        <button onclick="addCommand('⬇️')" class="btn-3d shadow-blue-700 bg-blue-500 hover:bg-blue-600 text-white font-bold p-3 rounded-xl flex items-center justify-center gap-1">
+                            <span>⬇️ Turun</span>
+                        </button>
+                        <button onclick="addCommand('↩️')" class="btn-3d shadow-blue-700 bg-blue-500 hover:bg-blue-600 text-white font-bold p-3 rounded-xl flex items-center justify-center gap-1">
+                            <span>↩️ Putar</span>
+                        </button>
+                    </div>
+
+                    <!-- Sequence Bar Display -->
+                    <div class="w-full min-h-[50px] bg-white border-2 border-slate-300 rounded-xl p-2 flex items-center gap-2 overflow-x-auto" id="command-queue">
+                        <span class="text-slate-400 text-xs italic">Perintah kamu akan muncul di sini...</span>
+                    </div>
+
+                    <!-- Execution Buttons -->
+                    <div class="flex gap-2 w-full">
+                        <button onclick="clearCommands()" class="w-1/3 bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold p-2.5 rounded-xl border border-rose-300 text-sm">
+                            🗑️ Hapus
+                        </button>
+                        <button onclick="runAlgorithm()" class="w-2/3 btn-3d shadow-emerald-700 bg-emerald-500 hover:bg-emerald-600 text-white font-bold p-2.5 rounded-xl flex items-center justify-center gap-2">
+                            <span>▶️ Jalankan Kode</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="m3-feedback" class="mt-4 text-center h-8 font-bold text-xl"></div>
+        </section>
+
+        <section id="page-module4" class="hidden w-full max-w-2xl glass-card p-5 md:p-8 rounded-3xl shadow-2xl flex flex-col items-center">
+            <div class="w-full flex justify-between items-center mb-4 border-b-2 pb-3 border-purple-100">
+                <span class="text-purple-700 font-extrabold text-lg flex items-center gap-2">
+                    🤖 Modul 4: Tanya DILAN AI
+                </span>
+                <span class="bg-purple-100 text-purple-800 font-bold px-3 py-1 rounded-full text-sm">
+                    Generative AI PAUD
+                </span>
+            </div>
+
+            <p class="text-slate-600 text-sm md:text-base text-center mb-4">
+                Tanyakan apapun tentang <b>Hewan Berkaki Empat</b>, huruf, atau angka kepada DILAN AI!
+            </p>
+
+            <!-- Chat Window -->
+            <div id="chat-window" class="w-full h-64 md:h-80 bg-purple-50/50 border-2 border-purple-200 rounded-2xl p-4 overflow-y-auto space-y-3 flex flex-col mb-4">
+                <!-- Default AI Welcome -->
+                <div class="flex gap-2 items-start max-w-[85%]">
+                    <span class="text-2xl">🦊</span>
+                    <div class="bg-white p-3 rounded-2xl rounded-tl-none border border-purple-200 shadow-sm text-sm text-slate-700">
+                        Halo! Aku DILAN, Detektif AI-mu. Mau tahu kenapa Sapi berkaki empat, atau suara Kucing? Tanyakan padaku ya!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Suggestions for PAUD -->
+            <div class="flex flex-wrap gap-2 mb-4 justify-center">
+                <button onclick="sendQuickPrompt('Sebutkan 3 hewan berkaki empat!')" class="text-xs bg-purple-100 hover:bg-purple-200 text-purple-800 px-3 py-1.5 rounded-full border border-purple-300 font-semibold">
+                    🐄 3 Hewan kaki empat?
+                </button>
+                <button onclick="sendQuickPrompt('Kenapa Kucing punya 4 kaki?')" class="text-xs bg-purple-100 hover:bg-purple-200 text-purple-800 px-3 py-1.5 rounded-full border border-purple-300 font-semibold">
+                    🐱 Kenapa Kucing 4 kaki?
+                </button>
+                <button onclick="generateAIStory()" class="text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1.5 rounded-full border border-amber-300 font-bold">
+                    📖 Buat Cerita Petualangan
+                </button>
+            </div>
+
+            <!-- Chat Input Box -->
+            <div class="w-full flex gap-2">
+                <input type="text" id="ai-input" placeholder="Tulis pertanyaanmu di sini..." class="flex-grow bg-white border-2 border-purple-300 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:border-purple-500 shadow-inner" onkeypress="if(event.key === 'Enter') handleAISubmit()">
+                <button onclick="handleAISubmit()" class="btn-3d shadow-purple-700 bg-purple-600 hover:bg-purple-700 text-white px-5 py-3 rounded-2xl font-bold flex items-center justify-center">
+                    <i data-lucide="send" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </section>
+
+        <section id="page-module5" class="hidden w-full max-w-3xl glass-card p-5 md:p-8 rounded-3xl shadow-2xl flex flex-col items-center">
+            <div class="w-full flex justify-between items-center mb-4 border-b-2 pb-3 border-orange-100 no-print">
+                <span class="text-orange-700 font-extrabold text-lg flex items-center gap-2">
+                    🖨️ Modul 5: Cetak Lembar Kerja Unplugged
+                </span>
+                <span class="bg-orange-100 text-orange-800 font-bold px-3 py-1 rounded-full text-sm">
+                    Aktivitas Fisik Kelas
+                </span>
+            </div>
+
+            <div class="no-print text-center mb-6">
+                <p class="text-slate-600 mb-4">
+                    Tekan tombol cetak di bawah ini untuk mengunduh/mencetak Lembar Kerja Unplugged Koding & Literasi Hewan Berkaki Empat untuk anak-anak di kelas!
+                </p>
+                <button onclick="window.print()" class="btn-3d shadow-orange-700 bg-orange-500 hover:bg-orange-600 text-white px-8 py-3.5 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 mx-auto">
+                    <i data-lucide="printer" class="w-6 h-6"></i>
+                    <span>Cetak Lembar Kerja (A4)</span>
+                </button>
+            </div>
+
+            <!-- Printable Sheet Content Structure -->
+            <div id="printable-worksheet" class="w-full bg-white p-6 border-4 border-dashed border-orange-300 rounded-2xl text-slate-900">
+                <!-- Header Sheet -->
+                <div class="text-center border-b-2 border-slate-800 pb-3 mb-4">
+                    <h2 class="text-2xl font-black uppercase">LEMBAR KERJA UNPLUGGED PAUD B</h2>
+                    <p class="text-sm font-bold text-slate-700">Tema: Hewan Berkaki Empat (DILAN-AI Detektif Cilik)</p>
+                    <div class="flex justify-between text-xs mt-3 font-semibold">
+                        <span>Nama Anak : ____________________</span>
+                        <span>Kelas / Tanggal : _________ / _________</span>
+                    </div>
+                </div>
+
+                <!-- Activity 1: Physical Unplugged Grid -->
+                <div class="mb-6">
+                    <h3 class="font-bold text-base border-b border-slate-400 pb-1 mb-2">Aktivitas 1: Misi Koding Unplugged Jalur Detektif</h3>
+                    <p class="text-xs mb-3">Gunting kartu panah di bagian bawah, lalu tempelkan pada kotak langkah untuk memandu DILAN (🦊) menuju Singa (🦁)!</p>
+                    
+                    <div class="grid grid-cols-4 gap-2 w-64 mx-auto border-2 border-slate-800 p-2 bg-slate-50">
+                        <div class="w-12 h-12 border border-slate-400 flex items-center justify-center font-bold text-xl">🦊</div>
+                        <div class="w-12 h-12 border border-slate-400 flex items-center justify-center font-bold text-xs">1</div>
+                        <div class="w-12 h-12 border border-slate-400 flex items-center justify-center font-bold text-xs">2</div>
+                        <div class="w-12 h-12 border border-slate-400 flex items-center justify-center font-bold text-xs">3</div>
+                        <div class="w-12 h-12 border border-slate-400 flex items-center justify-center font-bold text-xs">4</div>
+                        <div class="w-12 h-12 border border-slate-400 flex items-center justify-center font-bold text-xs">5</div>
+                        <div class="w-12 h-12 border border-slate-400 flex items-center justify-center font-bold text-xs">6</div>
+                        <div class="w-12 h-12 border border-slate-400 flex items-center justify-center font-bold text-xs">7</div>
+                        <div class="w-12 h-12 border border-slate-400 flex items-center justify-center font-bold text-xs">8</div>
+                        <div class="w-12 h-12 border border-slate-400 flex items-center justify-center font-bold text-xs">9</div>
+                        <div class="w-12 h-12 border border-slate-400 flex items-center justify-center font-bold text-xs">10</div>
+                        <div class="w-12 h-12 border border-slate-400 flex items-center justify-center font-bold text-xl">🦁</div>
+                    </div>
+                </div>
+
+                <!-- Activity 2: Match Letter & Count -->
+                <div class="mb-4">
+                    <h3 class="font-bold text-base border-b border-slate-400 pb-1 mb-2">Aktivitas 2: Literasi & Numerasi Hewan Berkaki Empat</h3>
+                    <div class="grid grid-cols-2 gap-4 text-xs">
+                        <div class="border p-2 rounded">
+                            <p class="font-bold mb-1">Tebak Huruf Awal:</p>
+                            <p>1. 🐄 S _ P I ( Huruf awal: ____ )</p>
+                            <p>2. 🐎 K _ D A ( Huruf awal: ____ )</p>
+                        </div>
+                        <div class="border p-2 rounded">
+                            <p class="font-bold mb-1">Hitung Jumlah Hewan:</p>
+                            <p>1. 🐱🐱🐱 = ____ Ekor Kucing</p>
+                            <p>2. 🐘🐘 = ____ Ekor Gajah</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cut-out Arrow Cards -->
+                <div class="border-2 border-dashed border-slate-600 p-3 mt-4">
+                    <p class="text-[10px] font-bold uppercase mb-2 text-center">✂️ Area Gunting Kartu Instruksi Panah Unplugged</p>
+                    <div class="flex justify-around text-xl font-bold">
+                        <span class="border-2 border-slate-800 px-3 py-1">➡️</span>
+                        <span class="border-2 border-slate-800 px-3 py-1">➡️</span>
+                        <span class="border-2 border-slate-800 px-3 py-1">⬆️</span>
+                        <span class="border-2 border-slate-800 px-3 py-1">⬇️</span>
+                        <span class="border-2 border-slate-800 px-3 py-1">↩️</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="page-results" class="hidden w-full max-w-xl glass-card p-6 md:p-8 rounded-3xl shadow-2xl flex flex-col items-center text-center">
+            <div class="text-7xl mb-2">🎉</div>
+            <h2 class="text-3xl font-extrabold text-amber-600 mb-1">Hebat Sekali, Detektif Cilik!</h2>
+            <p class="text-slate-600 mb-4">Kamu telah menyelesaikan misi petualangan DILAN-AI!</p>
+
+            <!-- Star Rating Display -->
+            <div id="star-container" class="flex gap-2 text-5xl my-2">
+                <span>⭐</span><span>⭐</span><span>⭐</span>
+            </div>
+
+            <!-- Score Cards -->
+            <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4 w-full my-4">
+                <div class="text-slate-700 font-bold text-lg mb-1">Skor Total Permainan:</div>
+                <div id="final-score" class="text-4xl font-extrabold text-amber-600">0</div>
+            </div>
+
+            <!-- Child-Friendly Psychological Note -->
+            <div class="bg-emerald-50 border border-emerald-300 rounded-xl p-3 text-xs text-emerald-800 text-left mb-6">
+                💡 <b>Catatan Pendampingan Guru & Orang Tua:</b> Skor ini merupakan apresiasi atas keaktifan eksplorasi anak dalam permainan, bukan tolak ukur tunggal batas kecerdasan atau perkembangan anak.
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-3 w-full">
+                <button onclick="goHome()" class="w-full btn-3d shadow-emerald-700 bg-emerald-500 hover:bg-emerald-600 text-white p-3.5 rounded-2xl font-bold">
+                    🏠 Kembali ke Menu
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="no-print w-full max-w-5xl mx-auto text-center py-3 text-xs text-slate-500 font-semibold mt-4">
+        DILAN-AI © 2026 • Media Pembelajaran Edukatif PAUD Kelompok B (Usia 5-6 Tahun)
+    </footer>
+
+    <script>
+        let globalScore = 0;
+        let isMuted = false;
+        let currentModule = 0;
+        let m1Index = 0;
+        let m2Index = 0;
+        let synth = window.speechSynthesis;
+
+        // Data 10 Soal Literasi Hewan Berkaki Empat
+        const m1Data = [
+            { name: "KUCING", letter: "K", emoji: "🐱", choices: ["K", "S", "G"] },
+            { name: "SAPI", letter: "S", emoji: "🐄", choices: ["S", "K", "D"] },
+            { name: "KUDA", letter: "K", emoji: "🐎", choices: ["K", "M", "R"] },
+            { name: "SINGA", letter: "S", emoji: "🦁", choices: ["S", "B", "K"] },
+            { name: "GAJAH", letter: "G", emoji: "🐘", choices: ["G", "S", "R"] },
+            { name: "DOMBA", letter: "D", emoji: "🐑", choices: ["D", "K", "M"] },
+            { name: "RUSA", letter: "R", emoji: "🦌", choices: ["R", "G", "S"] },
+            { name: "MACAN", letter: "M", emoji: "🐅", choices: ["M", "K", "B"] },
+            { name: "BADAK", letter: "B", emoji: "🦏", choices: ["B", "D", "S"] },
+            { name: "KELINCI", letter: "K", emoji: "🐰", choices: ["K", "R", "G"] }
+        ];
+
+        // Data 10 Soal Numerasi Hewan Berkaki Empat
+        const m2Data = [
+            { emoji: "🐱", count: 3, choices: [2, 3, 4] },
+            { emoji: "🐄", count: 5, choices: [4, 5, 6] },
+            { emoji: "🐎", count: 2, choices: [1, 2, 3] },
+            { emoji: "🦁", count: 4, choices: [3, 4, 5] },
+            { emoji: "🐑", count: 6, choices: [5, 6, 7] },
+            { emoji: "🐘", count: 1, choices: [1, 2, 3] },
+            { emoji: "🦌", count: 7, choices: [6, 7, 8] },
+            { emoji: "🐰", count: 8, choices: [7, 8, 9] },
+            { emoji: "🦏", count: 9, choices: [8, 9, 10] },
+            { emoji: "🐅", count: 10, choices: [9, 10, 8] }
+        ];
+
+        // Grid Algorithm State
+        let kikoPos = { r: 0, c: 0 };
+        let goalPos = { r: 3, c: 3 };
+        let commands = [];
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSFX(type) {
+            if (isMuted) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'click') {
+                    osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.05);
+                } else if (type === 'correct') {
+                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                    osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.25);
+                } else if (type === 'wrong') {
+                    osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.2);
+                }
+            } catch (e) { console.log(e); }
+        }
+
+        function speakText(text) {
+            if (isMuted || !('speechSynthesis' in window)) return;
+            synth.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'id-ID';
+            utterance.rate = 0.9; // Slightly slower for children
+            utterance.pitch = 1.1; // Friendly higher pitch
+            synth.speak(utterance);
+        }
+
+        function toggleMute() {
+            isMuted = !isMuted;
+            const icon = document.getElementById('sound-icon');
+            if (isMuted) {
+                icon.setAttribute('data-lucide', 'volume-x');
+                synth.cancel();
+            } else {
+                icon.setAttribute('data-lucide', 'volume-2');
+            }
+            lucide.createIcons();
+        }
+
+        function updateScore(pts) {
+            globalScore += pts;
+            document.getElementById('global-score').innerText = globalScore;
+        }
+
+        function hideAllPages() {
+            const pages = ['page-home', 'page-module1', 'page-module2', 'page-module3', 'page-module4', 'page-module5', 'page-results'];
+            pages.forEach(p => document.getElementById(p).classList.add('hidden'));
+        }
+
+        function goHome() {
+            playSFX('click');
+            hideAllPages();
+            document.getElementById('page-home').classList.remove('hidden');
+        }
+
+        function playGreeting() {
+            speakText("Halo! Aku DILAN AI. Ayo pilih modul permainan untuk belajar hewan berkaki empat bersama!");
+        }
+
+        function startModule(modNum) {
+            playSFX('click');
+            hideAllPages();
+            currentModule = modNum;
+
+            if (modNum === 1) {
+                m1Index = 0;
+                document.getElementById('page-module1').classList.remove('hidden');
+                loadM1Question();
+            } else if (modNum === 2) {
+                m2Index = 0;
+                document.getElementById('page-module2').classList.remove('hidden');
+                loadM2Question();
+            } else if (modNum === 3) {
+                document.getElementById('page-module3').classList.remove('hidden');
+                initGrid();
+            } else if (modNum === 4) {
+                document.getElementById('page-module4').classList.remove('hidden');
+            } else if (modNum === 5) {
+                document.getElementById('page-module5').classList.remove('hidden');
+            }
+        }
+
+        function loadM1Question() {
+            const q = m1Data[m1Index];
+            document.getElementById('m1-progress').innerText = `Soal ${m1Index + 1} / 10`;
+            document.getElementById('m1-emoji').innerText = q.emoji;
+            document.getElementById('m1-animal-name').innerText = `_ ${q.name.substring(1)}`;
+            document.getElementById('m1-feedback').innerText = '';
+
+            const choicesContainer = document.getElementById('m1-choices');
+            choicesContainer.innerHTML = '';
+
+            q.choices.forEach(letter => {
+                const btn = document.createElement('button');
+                btn.className = "btn-3d shadow-emerald-700 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-3xl py-4 rounded-2xl border-2 border-emerald-300";
+                btn.innerText = letter;
+                btn.onclick = () => checkM1Answer(letter);
+                choicesContainer.appendChild(btn);
+            });
+
+            speakCurrentQuestionM1();
+        }
+
+        function speakCurrentQuestionM1() {
+            const q = m1Data[m1Index];
+            speakText(`Hewan ${q.name}. Pilih huruf awal untuk ${q.name}!`);
+        }
+
+        function checkM1Answer(selected) {
+            const q = m1Data[m1Index];
+            const feedback = document.getElementById('m1-feedback');
+
+            if (selected === q.letter) {
+                playSFX('correct');
+                feedback.className = "mt-6 text-center h-8 font-bold text-xl text-emerald-600";
+                feedback.innerText = "✨ Hebat! Jawabanmu Benar!";
+                updateScore(10);
+                speakText("Hebat! Jawabanmu Benar!");
+
+                setTimeout(() => {
+                    m1Index++;
+                    if (m1Index < m1Data.length) {
+                        loadM1Question();
+                    } else {
+                        showResults();
+                    }
+                }, 1500);
+            } else {
+                playSFX('wrong');
+                feedback.className = "mt-6 text-center h-8 font-bold text-xl text-rose-500";
+                feedback.innerText = "Ayo coba lagi!";
+                speakText("Ayo coba lagi!");
+            }
+        }
+
+        function loadM2Question() {
+            const q = m2Data[m2Index];
+            document.getElementById('m2-progress').innerText = `Soal ${m2Index + 1} / 10`;
+            document.getElementById('m2-feedback').innerText = '';
+
+            const container = document.getElementById('m2-animals-container');
+            container.innerHTML = '';
+            for (let i = 0; i < q.count; i++) {
+                const span = document.createElement('span');
+                span.className = "text-5xl md:text-6xl animate-pulse";
+                span.innerText = q.emoji;
+                container.appendChild(span);
+            }
+
+            const choicesContainer = document.getElementById('m2-choices');
+            choicesContainer.innerHTML = '';
+            q.choices.forEach(num => {
+                const btn = document.createElement('button');
+                btn.className = "btn-3d shadow-amber-700 bg-amber-500 hover:bg-amber-600 text-white font-bold text-3xl py-4 rounded-2xl border-2 border-amber-300";
+                btn.innerText = num;
+                btn.onclick = () => checkM2Answer(num);
+                choicesContainer.appendChild(btn);
+            });
+
+            speakCurrentQuestionM2();
+        }
+
+        function speakCurrentQuestionM2() {
+            const q = m2Data[m2Index];
+            speakText(`Berapa jumlah hewan di dalam kotak? Hitung bersama!`);
+        }
+
+        function checkM2Answer(selected) {
+            const q = m2Data[m2Index];
+            const feedback = document.getElementById('m2-feedback');
+
+            if (selected === q.count) {
+                playSFX('correct');
+                feedback.className = "mt-6 text-center h-8 font-bold text-xl text-amber-600";
+                feedback.innerText = "🌟 Pinter! Hitunganmu Tepat!";
+                updateScore(10);
+                speakText("Pinter! Hitunganmu tepat!");
+
+                setTimeout(() => {
+                    m2Index++;
+                    if (m2Index < m2Data.length) {
+                        loadM2Question();
+                    } else {
+                        showResults();
+                    }
+                }, 1500);
+            } else {
+                playSFX('wrong');
+                feedback.className = "mt-6 text-center h-8 font-bold text-xl text-rose-500";
+                feedback.innerText = "Coba hitung sekali lagi!";
+                speakText("Coba hitung sekali lagi!");
+            }
+        }
+
+        function initGrid() {
+            kikoPos = { r: 0, c: 0 };
+            goalPos = { r: 3, c: 3 };
+            commands = [];
+            renderGrid();
+            updateCommandQueue();
+            document.getElementById('m3-feedback').innerText = '';
+        }
+
+        function renderGrid() {
+            const container = document.getElementById('grid-container');
+            container.innerHTML = '';
+
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 4; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = "w-full h-full bg-blue-900 border border-blue-700 rounded-xl flex items-center justify-center text-3xl font-bold shadow-inner";
+                    
+                    if (r === kikoPos.r && c === kikoPos.c) {
+                        cell.innerText = "🦊";
+                        cell.classList.add("bg-amber-400/40");
+                    } else if (r === goalPos.r && c === goalPos.c) {
+                        cell.innerText = "🐾";
+                        cell.classList.add("bg-emerald-400/40");
+                    }
+                    container.appendChild(cell);
+                }
+            }
+        }
+
+        function addCommand(cmd) {
+            playSFX('click');
+            if (commands.length < 8) {
+                commands.push(cmd);
+                updateCommandQueue();
+            }
+        }
+
+        function clearCommands() {
+            playSFX('click');
+            commands = [];
+            updateCommandQueue();
+        }
+
+        function updateCommandQueue() {
+            const queue = document.getElementById('command-queue');
+            if (commands.length === 0) {
+                queue.innerHTML = '<span class="text-slate-400 text-xs italic">Perintah kamu akan muncul di sini...</span>';
+            } else {
+                queue.innerHTML = '';
+                commands.forEach(cmd => {
+                    const badge = document.createElement('span');
+                    badge.className = "bg-blue-100 border border-blue-400 text-blue-800 text-lg font-bold px-2.5 py-1 rounded-lg";
+                    badge.innerText = cmd;
+                    queue.appendChild(badge);
+                });
+            }
+        }
+
+        function runAlgorithm() {
+            if (commands.length === 0) return;
+            playSFX('click');
+
+            let tempPos = { ...kikoPos };
+            let step = 0;
+
+            const interval = setInterval(() => {
+                if (step >= commands.length) {
+                    clearInterval(interval);
+                    checkGridGoal();
+                    return;
+                }
+
+                const cmd = commands[step];
+                if (cmd === '➡️' && tempPos.c < 3) tempPos.c++;
+                else if (cmd === '⬆️' && tempPos.r > 0) tempPos.r--;
+                else if (cmd === '⬇️' && tempPos.r < 3) tempPos.r++;
+                else if (cmd === '↩️') tempPos.c = Math.max(0, tempPos.c - 1);
+
+                kikoPos = { ...tempPos };
+                renderGrid();
+                step++;
+            }, 500);
+        }
+
+        function checkGridGoal() {
+            const feedback = document.getElementById('m3-feedback');
+            if (kikoPos.r === goalPos.r && kikoPos.c === goalPos.c) {
+                playSFX('correct');
+                feedback.className = "mt-4 text-center h-8 font-bold text-xl text-emerald-600";
+                feedback.innerText = "🎉 Luar Biasa! Algoritma Kodingmu Berhasil!";
+                updateScore(20);
+                speakText("Luar biasa! Algoritma kodingmu berhasil!");
+            } else {
+                playSFX('wrong');
+                feedback.className = "mt-4 text-center h-8 font-bold text-xl text-rose-500";
+                feedback.innerText = "Belum sampai, ayo coba susun kode lagi!";
+                speakText("Belum sampai, ayo coba susun kode lagi!");
+            }
+        }
+
+        async function handleAISubmit() {
+            const input = document.getElementById('ai-input');
+            const query = input.value.trim();
+            if (!query) return;
+
+            input.value = '';
+            appendChatMessage('user', query);
+
+            // Call Gemini API or Smart Fallback
+            appendChatMessage('ai', 'Sedang berpikir... 🦊💭');
+            
+            try {
+                const response = await fetchGeminiAI(query);
+                updateLastAIMessage(response);
+            } catch (err) {
+                updateLastAIMessage("Hewan berkaki empat itu contohnya Kucing, Sapi, Kuda, dan Singa! Mereka menggunakan 4 kakinya untuk berjalan dan berlari cepat!");
+            }
+        }
+
+        function sendQuickPrompt(promptText) {
+            document.getElementById('ai-input').value = promptText;
+            handleAISubmit();
+        }
+
+        function appendChatMessage(sender, text) {
+            const win = document.getElementById('chat-window');
+            const wrapper = document.createElement('div');
+            wrapper.className = `flex gap-2 items-start max-w-[85%] ${sender === 'user' ? 'ml-auto flex-row-reverse' : ''}`;
+
+            const icon = sender === 'user' ? '👶' : '🦊';
+            const bgClass = sender === 'user' ? 'bg-purple-600 text-white rounded-tr-none' : 'bg-white text-slate-700 border border-purple-200 rounded-tl-none';
+
+            wrapper.innerHTML = `
+                <span class="text-2xl">${icon}</span>
+                <div class="${bgClass} p-3 rounded-2xl shadow-sm text-sm font-medium">
+                    ${text}
+                </div>
+            `;
+            win.appendChild(wrapper);
+            win.scrollTop = win.scrollHeight;
+        }
+
+        function updateLastAIMessage(text) {
+            const win = document.getElementById('chat-window');
+            const lastMsg = win.lastElementChild.querySelector('div');
+            if (lastMsg) {
+                lastMsg.innerText = text;
+                speakText(text);
+            }
+        }
+
+        async function fetchGeminiAI(prompt) {
+            const apiKey = ""; // Canvas runtime environment automatically passes key if needed
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+
+            const systemInstruction = "Kamu adalah Detektif Kiko, karakter rubah pintar yang ramah untuk anak PAUD (usia 5-6 tahun). Jawablah pertanyaan seputar hewan berkaki empat, huruf, dan angka secara singkat (maksimal 2 kalimat), sangat ceria, mudah dipahami anak-anak, dan edukatif.";
+
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                systemInstruction: { parts: [{ text: systemInstruction }] }
+            };
+
+            const res = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            return data.candidates?.[0]?.content?.parts?.[0]?.text || "DILAN AI siap membantumu belajar hewan berkaki empat!";
+        }
+
+        async function generateAIStory() {
+            appendChatMessage('user', 'Buatkan cerita petualangan pendek!');
+            appendChatMessage('ai', 'DILAN sedang mengarang cerita... 📜✨');
+
+            const storyPrompt = `Buatkan cerita petualangan petualang cilik bersama DILAN AI mencari Kucing dan Sapi di hutan ceria dalam 3 kalimat sederhana untuk anak PAUD B.`;
+            try {
+                const story = await fetchGeminiAI(storyPrompt);
+                updateLastAIMessage(story);
+            } catch(e) {
+                updateLastAIMessage("Suatu hari, DILAN AI dan Sahabat Cilik menjelajahi hutan hijau. Mereka menemukan jejak kaki Kucing dan Sapi di dekat sungai. Dengan gembira, mereka belajar berhitung empat kaki bersama-sama!");
+            }
+        }
+
+        function showResults() {
+            hideAllPages();
+            document.getElementById('page-results').classList.remove('hidden');
+            document.getElementById('final-score').innerText = globalScore;
+
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+
+            speakText(`Selamat! Kamu menyelesaikan permainan dengan skor total ${globalScore}! Kamu detektif yang hebat!`);
+        }
+
+        /* Initialize Lucide Icons on load */
+        window.onload = function() {
+            lucide.createIcons();
+        };
+    </script>
+</body>
+</html>
